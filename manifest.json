@@ -5,7 +5,9 @@
   "version": "2.0",
   "permissions": [
     "tabs",
-    "storage"
+    "storage",
+    "alarms",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://*/"

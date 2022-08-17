@@ -71,6 +71,7 @@ class MekaOptions extends HTMLElement {
   }
 
   loadFormData() {
+    const me = this;
     chrome.storage.sync.get({popupQuery:'', jiraPath: ''}, (result) => {
       if (result.popupQuery) {
         this.shadowRoot.getElementById('popupQuery').value = result.popupQuery;
@@ -94,7 +95,6 @@ class MekaOptions extends HTMLElement {
         me.renderFilters(JSON.parse(content));
       }
     });
-    
   }
 
   renderFilters(filterData) {

@@ -26,7 +26,6 @@ class MekaView  extends HTMLElement {
     me.defaultQuery = 'assignee%3DCurrentUser()%20and%20resolution%20=%20Unresolved';
     const shadow = me.attachShadow({ mode: 'open'});
     const wrapper = document.createElement('div');
-    // TODO: break this into sub-components by style selectors more or less
     const template = `
       <style>
         :host {
@@ -53,29 +52,21 @@ class MekaView  extends HTMLElement {
     me.init();
   }
 
-  renderPage() {
-  }
-
   async fetchData() {
     const me = this;
-    chrome.runtime.sendMessage({operation: 'fetchData', data: { query: me.query, jiraPath: me.jiraPath }}).then((response) => {
-      if (response) {
-        me.updateData(response);
-      }
-    });
-    
+    chrome.runtime.sendMessage({operation: 'fetchData', data: { query: me.query, jiraPath: me.jiraPath }});
   }
 
   updateData(data) {
     const me = this;
-    chrome.action.setBadgeText({text: data.issues.length.toString()});
-    me.shadowRoot.querySelector('meka-tasks').tasks = data.issues;
-    me.loading = false;
+    if (data.issues) {
+      me.shadowRoot.querySelector('meka-tasks').tasks = data.issues;
+      me.loading = false;
+    }
   }
 
   init() {
     const me = this;
-    me.renderPage();
     chrome.storage.sync.get({popupQuery:me.defaultQuery, jiraPath:''}, (result) => {
       const { jiraPath } = result;
       if (!jiraPath) {
@@ -88,12 +79,18 @@ class MekaView  extends HTMLElement {
       me.jiraPath = jiraPath;
       me.query = result.popupQuery || me.defaultQuery;
       me.fetchData();
-      chrome.storage.onChanged.addListener((changes) => {
-        const { jiraPath, query } = changes;
-        me.jiraPath = jiraPath || me.jiraPath;
-        me.query = query || me.query;
+    });
+
+    chrome.storage.onChanged.addListener((changes) => {
+      const { jiraPath, query, displayData } = changes;
+      if (displayData) {
+        me.updateData(displayData.newValue);
+      }
+      me.jiraPath = jiraPath || me.jiraPath;
+      me.query = query || me.query;
+      if (jiraPath || query) {
         me.fetchData();
-      });
+      }
     });
   }
 }
